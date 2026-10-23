@@ -142,4 +142,3 @@ if __name__ == "__main__":
         video_source=0,
         output_file="output.mp4"
     )
-xx

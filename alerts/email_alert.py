@@ -1,5 +1,6 @@
 import os
 import smtplib
+import mimetypes
 from email.message import EmailMessage
 
 class EmailAlert:
@@ -26,23 +27,25 @@ class EmailAlert:
         if not self.is_configured():
             return {"channel": "email", "sent": False, "reason": "not configured"}
 
-        msg = EmailMessage()
-        msg["Subject"] = subject
-        msg["From"] = self.from_email
-        msg["To"] = self.to_email
-        msg.set_content(message)
-
-        if screenshot_path and os.path.exists(screenshot_path):
-            with open(screenshot_path, "rb") as f:
-                data = f.read()
-            msg.add_attachment(
-                data,
-                maintype="image",
-                subtype="jpeg",
-                filename=os.path.basename(screenshot_path)
-            )
-
         try:
+            msg = EmailMessage()
+            msg["Subject"] = subject
+            msg["From"] = self.from_email
+            msg["To"] = self.to_email
+            msg.set_content(message)
+
+            if screenshot_path and os.path.exists(screenshot_path):
+                with open(screenshot_path, "rb") as f:
+                    data = f.read()
+                content_type = mimetypes.guess_type(screenshot_path)[0] or "application/octet-stream"
+                maintype, subtype = content_type.split("/", 1)
+                msg.add_attachment(
+                    data,
+                    maintype=maintype,
+                    subtype=subtype,
+                    filename=os.path.basename(screenshot_path)
+                )
+
             with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=15) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)

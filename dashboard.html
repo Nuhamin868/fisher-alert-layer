@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FISHER alerts</title>
+<style>body{font:16px system-ui;max-width:1000px;margin:40px auto;padding:0 20px;background:#101827;color:#eef3ff}button{padding:10px;cursor:pointer}article{background:#1e293b;padding:16px;margin:16px 0;border-radius:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere}</style>
+<h1>FISHER alert history</h1><button id="refresh">Refresh</button><p id="status" role="status"></p><main id="alerts"></main>
+<script>
+async function refresh(){const status=document.querySelector('#status');status.textContent='Loading…';try{const response=await fetch('/alerts');if(!response.ok)throw new Error('Could not load alerts');const data=await response.json();document.querySelector('#alerts').replaceChildren();for(const record of data.alerts){const card=document.createElement('article');const title=document.createElement('h2');title.textContent=record.event?.event_type||'Alert';const details=document.createElement('pre');details.textContent=JSON.stringify(record,null,2);card.append(title,details);document.querySelector('#alerts').append(card)}status.textContent=data.count+' recorded events'}catch(error){status.textContent=error.message}}
+document.querySelector('#refresh').addEventListener('click',refresh);refresh();
+</script></html>

@@ -7,7 +7,7 @@ It can later be connected to the Analytics Layer, YOLO detection pipeline, or Fa
 
 - Telegram alerts
 - Email alerts
-- SMS adapter placeholder
+- SMS delivery using eSMS Africa
 - Alert message formatting
 - Screenshot copying/evidence handling
 - Cooldown / duplicate-alert prevention
@@ -77,6 +77,8 @@ Never commit the real `.env` file to GitHub.
 
 ```bash
 python demo.py
+# Explicitly opt in to configured live services:
+python demo.py --live
 ```
 
 ## 4. Run the cooldown test
@@ -139,4 +141,22 @@ Recommended future improvements:
 - Retry queue for failed notifications
 - Configurable dashboard alert rules
 - Per-user notification preferences
-- Real SMS provider integration
+- Delivery receipts and retry handling
+
+## API and dashboard
+
+Run `uvicorn api:app --host 127.0.0.1 --port 8000` after installing requirements.
+Open `http://127.0.0.1:8000/dashboard` for recorded alerts and `/docs` for the API.
+The API has no authentication; keep it on localhost or behind an authenticated gateway.
+The demo disables delivery unless `--live` is supplied. A processed event does not imply successful delivery: inspect channel results.
+
+Run isolated regression tests with `python -m unittest discover -s tests -p test_alert_layer.py -v`.
+The legacy `tests/test_alert.py` is a manual demo and may send configured notifications.
+
+Optional object detection requires `pip install -r requirements-detection.txt`.
+It runs separately and is not wired to alert dispatch. Its model may download on first use.
+
+Screenshot copies have unique names. Evidence-copy failures are recorded without stopping notifications.
+Email attachments use the source MIME type. SMS acceptance requires a message ID and no explicit failure response.
+Cooldown is in memory, includes unsuccessful dispatch attempts, and is not shared across processes.
+Notification delivery is synchronous; no retry queue is implemented.

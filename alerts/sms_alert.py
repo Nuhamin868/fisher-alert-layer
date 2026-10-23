@@ -68,6 +68,17 @@ class SMSAlert:
             if response.ok:
                 data = response.json()
 
+                if not isinstance(data, dict):
+                    return {"channel": "sms", "sent": False, "reason": "Invalid provider response"}
+                status = str(data.get("status", "")).lower()
+                if data.get("error") or data.get("success") is False or status in {
+                    "failed", "failure", "rejected", "error", "undelivered", "cancelled"
+                } or not data.get("id"):
+                    return {
+                        "channel": "sms", "sent": False,
+                        "status": data.get("status"),
+                        "reason": str(data.get("error") or "Provider did not confirm message acceptance"),
+                    }
                 return {
                     "channel": "sms",
                     "sent": True,
@@ -82,7 +93,7 @@ class SMSAlert:
                 "reason": response.text,
             }
 
-        except requests.RequestException as exc:
+        except (requests.RequestException, ValueError) as exc:
             return {
                 "channel": "sms",
                 "sent": False,

@@ -48,7 +48,14 @@ class AlertManager:
             self.logger.log(result)
             return result
 
-        screenshot = save_screenshot_copy(event.screenshot_path)
+        screenshot_error = None
+        try:
+            screenshot = save_screenshot_copy(event.screenshot_path)
+            if event.screenshot_path and screenshot is None:
+                screenshot_error = "Screenshot source is not a readable file"
+        except (OSError, ValueError) as exc:
+            screenshot = None
+            screenshot_error = str(exc)
         message = format_alert_message(event)
 
         results = []
@@ -72,6 +79,7 @@ class AlertManager:
             "status": "processed",
             "event": event.to_dict(),
             "saved_screenshot": screenshot,
+            "screenshot_error": screenshot_error,
             "channel_results": results
         }
 

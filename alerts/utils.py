@@ -1,6 +1,7 @@
 from pathlib import Path
 from datetime import datetime
 import shutil
+from uuid import uuid4
 
 def format_alert_message(event):
     confidence_pct = round(event.confidence * 100, 2)
@@ -21,13 +22,13 @@ def save_screenshot_copy(source_path, screenshots_dir="screenshots"):
         return None
 
     source = Path(source_path)
-    if not source.exists():
+    if not source.is_file():
         return None
 
     dest_dir = Path(screenshots_dir)
     dest_dir.mkdir(parents=True, exist_ok=True)
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dest = dest_dir / f"{source.stem}_{stamp}{source.suffix}"
+    dest = dest_dir / f"{source.stem}_{stamp}_{uuid4().hex}{source.suffix}"
     shutil.copy2(source, dest)
     return str(dest)
